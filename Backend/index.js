@@ -4,9 +4,8 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import connectDB from "./config/db.js";
-import authRoutes from "./routes/authRoutes.js";
-import platformRoutes from "./routes/platformRoutes.js";
+import pool from "./config/db.js";
+import authRoutes from "./routes/employee.js";
 
 const app = express();
 
@@ -23,7 +22,6 @@ app.get("/", (req, res) => res.json({ message: "Hello World from EMS Backend bui
 
 // routes
 app.use("/api/auth", authRoutes);
-app.use("/api/platform", platformRoutes);
 
 
 // error handler (keep this last)
@@ -35,5 +33,5 @@ app.use((err, req, res, next) => {
 
 
 // db connection and server listening
-await connectDB();
+await pool.connect();
 app.listen(process.env.PORT, () => console.log(`Server on ${process.env.PORT}`));

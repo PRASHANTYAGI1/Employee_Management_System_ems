@@ -1,32 +1,25 @@
+
 import dotenv from "dotenv";
 import pg from "pg";
+
 dotenv.config();
 
-const DB_string = process.env.DB_string;
+const { Pool } = pg;
 
-export const pool = new pg.Pool({ connectionString: DB_string });
+const pool = new Pool({
+    connectionString: process.env.DB_STRING,
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+});
 
-const connectDB = async () => {
-    try {
-        const client = await pool.connect();
-        await client.query("SELECT 1");
-        client.release();
-        console.log("PostgreSQL connected");
-    } catch (e) {
-        console.error("DB connection failed:", e.message);
-        process.exit(1);
-    }
-};
 
-// calls a DB procedure/function: SELECT * FROM fn($1, $2, ...)
-// pass only function names written in your own code, never user input
-export const callFn = async (fnName, params = []) => {
-    const placeholders = params.map((_, i) => `$${i + 1}`).join(", ");
-    const { rows } = await pool.query(
-        `SELECT * FROM ${fnName}(${placeholders})`,
-        params
-    );
-    return rows;
-};
+pool.on("connect", () => {
+    console.log("PostgreSQL connected successfully");
+});
 
-export default connectDB;
+pool.on("error", (err) => {
+    console.error("Unexpected PostgreSQL pool error:", err);
+});
+
+export default pool;
